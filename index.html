@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-  <title>ハングルタイピング練習アプリ</title>
+  <title>ハングルタイピング練習</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -17,69 +17,53 @@
       margin: 0;
       padding: 8px;
       overflow: hidden;
-      transition: all 0.2s ease;
+      position: relative;
     }
+
     .card {
       background: #ffffff;
-      padding: 12px 10px;
+      padding: 16px 14px;
       border-radius: 16px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.08);
       width: 100%;
       max-width: 380px;
       text-align: center;
+      position: relative;
     }
-    h1 { font-size: 1rem; color: #2f5496; margin: 0 0 6px 0; }
-    
-    .mode-selector {
+
+    /* ヘッダー＆ハンバーガーボタン */
+    .header {
       display: flex;
       justify-content: space-between;
-      gap: 3px;
-      margin-bottom: 6px;
+      align-items: center;
+      margin-bottom: 12px;
     }
-    .mode-btn {
-      flex: 1;
-      background: #e2efda;
-      border: 1px solid #a8d08d;
-      color: #375623;
-      padding: 5px 2px;
-      border-radius: 6px;
+    h1 { font-size: 1.1rem; color: #2f5496; margin: 0; }
+    
+    .hamburger-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
       cursor: pointer;
-      font-size: 0.7rem;
-      font-weight: bold;
-    }
-    .mode-btn.active { background: #2f5496; color: white; border-color: #2f5496; }
-
-    .csv-upload-box { margin-bottom: 6px; }
-    .btn-csv {
-      background: #fff;
-      border: 1px dashed #2f5496;
+      padding: 4px;
       color: #2f5496;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 0.7rem;
-      cursor: pointer;
-      display: inline-block;
     }
 
-    .controls { margin-bottom: 6px; }
-    .btn-sub {
-      background: #f2f2f2;
-      border: 1px solid #ccc;
-      padding: 3px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.7rem;
-    }
-
+    /* 問題表示エリア */
     .question-box {
       background: #eef2f7;
-      border-radius: 10px;
-      padding: 8px 6px;
-      margin-bottom: 6px;
+      border-radius: 12px;
+      padding: 12px 10px;
+      margin-bottom: 12px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
     
     .romaji-large {
-      font-size: 2.1rem;
+      font-size: 2.5rem;
       font-weight: bold;
       color: #1e3a70;
       margin: 2px 0;
@@ -87,105 +71,211 @@
     }
     
     .pronounce-hint {
-      font-size: 0.78rem;
+      font-size: 0.85rem;
       color: #555;
-      margin-bottom: 4px;
-      min-height: 1.2em;
+      margin-top: 4px;
     }
 
     .key-hint {
       display: inline-block;
       background: #ffffff;
-      padding: 2px 8px;
+      padding: 2px 10px;
       border-radius: 12px;
       border: 1px solid #2f5496;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       color: #2f5496;
       font-weight: bold;
+      margin-top: 6px;
     }
 
     .action-btns {
-      margin-top: 6px;
+      margin-top: 8px;
       display: flex;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
     }
     .btn-action {
       background: #ffc000;
       color: #000;
       border: none;
-      padding: 3px 10px;
-      border-radius: 12px;
+      padding: 4px 12px;
+      border-radius: 14px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
     }
     .btn-audio { background: #4472c4; color: #fff; }
 
     .revealed-answer {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       font-weight: bold;
       color: #c55a11;
-      margin-top: 2px;
+      margin-top: 4px;
       display: none;
     }
 
+    /* 入力・結果エリア */
     input[type="text"] {
-      width: 80%;
-      font-size: 1.4rem;
+      width: 85%;
+      font-size: 1.6rem;
       text-align: center;
-      padding: 4px;
+      padding: 6px;
       border: 2px solid #ccc;
-      border-radius: 8px;
+      border-radius: 10px;
       outline: none;
-      margin: 0 auto 4px auto;
+      margin: 0 auto 6px auto;
     }
     input[type="text"]:focus { border-color: #2f5496; }
 
-    .feedback { font-weight: bold; font-size: 0.9rem; min-height: 18px; margin-bottom: 2px; }
+    .feedback { font-weight: bold; font-size: 1rem; min-height: 22px; margin-bottom: 4px; }
     .correct { color: #2e7d32; }
-    .score-board { font-size: 0.72rem; color: #666; }
 
-    /* キーボード表示時の超コンパクトスタイル */
-    body.is-keyboard-open { align-items: flex-start; padding-top: 2px; }
-    body.is-keyboard-open h1 { display: none; }
-    body.is-keyboard-open .card { padding: 6px 8px; }
-    body.is-keyboard-open .romaji-large { font-size: 1.5rem; }
+    .sub-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: #666;
+      margin-top: 6px;
+    }
+    .btn-order {
+      background: #f2f2f2;
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.72rem;
+    }
+
+    /* --------------------------------------------------
+       ハンバーガーサイドメニュー（ドロワー）
+       -------------------------------------------------- */
+    .menu-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vvh;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      z-index: 100;
+    }
+    .menu-overlay.open { display: block; }
+
+    .menu-content {
+      position: fixed;
+      top: 0; right: -280px;
+      width: 280px; height: 100dvh;
+      background: #ffffff;
+      box-shadow: -4px 0 15px rgba(0,0,0,0.15);
+      transition: right 0.3s ease;
+      z-index: 101;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .menu-content.open { right: 0; }
+
+    .menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #2f5496;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+    .menu-title { font-size: 1.1rem; font-weight: bold; color: #2f5496; }
+    .close-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; }
+
+    .menu-section {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .section-label {
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: #777;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      border-left: 3px solid #2f5496;
+      padding-left: 6px;
+    }
+
+    /* モード選択リスト */
+    .mode-option {
+      display: flex;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      margin-bottom: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      border: 1px solid #e9ecef;
+    }
+    .mode-option.active {
+      background: #e2efda;
+      border-color: #a8d08d;
+      font-weight: bold;
+      color: #375623;
+    }
+    .mode-option .check-mark {
+      margin-left: auto;
+      font-weight: bold;
+      color: #2e7d32;
+    }
+
+    /* 設定チェックボックス（トグル） */
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 0.85rem;
+      border-bottom: 1px dashed #eee;
+    }
+    .setting-item input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: #2f5496;
+      cursor: pointer;
+    }
+
+    .btn-csv-import {
+      width: 100%;
+      background: #2f5496;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    /* キーボード起動時超コンパクトスタイル */
+    body.is-keyboard-open { align-items: flex-start; padding-top: 4px; }
+    body.is-keyboard-open .card { padding: 10px; }
+    body.is-keyboard-open .romaji-large { font-size: 1.8rem; }
+    body.is-keyboard-open .question-box { min-height: 90px; padding: 6px; }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <h1>🇰🇷 ハングルタイピング</h1>
-    
-    <div class="mode-selector">
-      <button class="mode-btn active" onclick="changeMode(1)">1. 140音組合せ</button>
-      <button class="mode-btn" onclick="changeMode(2)">2. 基本単語</button>
-      <button class="mode-btn" onclick="changeMode(3)">3. 会話フレーズ</button>
+    <div class="header">
+      <h1>🇰🇷 ハングルタイピング</h1>
+      <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
     </div>
 
-    <!-- 全モード一括CSVファイルの読込機能 -->
-    <div class="csv-upload-box">
-      <label class="btn-csv">
-        📁 全データ一括CSVの読み込み
-        <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCSVUpload(event)">
-      </label>
-    </div>
-
-    <div class="controls">
-      <button class="btn-sub" onclick="toggleOrder()" id="orderBtn">出題: 順番通り</button>
-      <button class="btn-sub" onclick="resetQuiz()">最初から</button>
-    </div>
-    
     <div class="question-box">
-      <div style="font-size: 0.68rem; color: #777;">【問題】ローマ字タイピング</div>
+      <div style="font-size: 0.7rem; color: #777;">【問題】</div>
       <div class="romaji-large" id="romajiText">ga</div>
       <div class="pronounce-hint" id="pronounceHint">発音: カ (a)</div>
       <div class="key-hint" id="keyHint">キー: r + k</div>
 
       <div class="action-btns">
-        <button class="btn-action" onclick="revealAnswer()">👁️ 答えを見る</button>
-        <button class="btn-action btn-audio" onclick="playAudio()">🔊 発音を聞く</button>
+        <button class="btn-action" id="btnReveal" onclick="revealAnswer()">👁️ 答えを見る</button>
+        <button class="btn-action btn-audio" id="btnAudio" onclick="playAudio()">🔊 発音を聞く</button>
       </div>
       <div class="revealed-answer" id="revealedAnswer">가</div>
     </div>
@@ -194,12 +284,70 @@
 
     <input type="text" id="userInput" placeholder="ハングル入力" autocomplete="off">
     
-    <div class="score-board">
-      正解数: <span id="score">0</span> | 進捗: <span id="progress">1</span> / <span id="maxProgress">140</span>
+    <div class="sub-controls">
+      <button class="btn-order" onclick="toggleOrder()" id="orderBtn">順序通り</button>
+      <div>進捗: <span id="progress">1</span> / <span id="maxProgress">140</span> (正解: <span id="score">0</span>)</div>
+    </div>
+  </div>
+
+  <!-- ハンバーガーメニュー (スライドオーバーレイ) -->
+  <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+  <div class="menu-content" id="menuContent">
+    <div class="menu-header">
+      <div class="menu-title">メニュー＆設定</div>
+      <button class="close-btn" onclick="toggleMenu()">✕</button>
+    </div>
+
+    <!-- モード選択 -->
+    <div class="menu-section">
+      <div class="section-label">モード選択</div>
+      <div class="mode-option" id="modeOpt1" onclick="changeMode(1)">
+        1. 140音組合せ
+        <span class="check-mark" id="check1">✔</span>
+      </div>
+      <div class="mode-option" id="modeOpt2" onclick="changeMode(2)">
+        2. 基本単語
+        <span class="check-mark" id="check2" style="display:none;">✔</span>
+      </div>
+      <div class="mode-option" id="modeOpt3" onclick="changeMode(3)">
+        3. 会話フレーズ
+        <span class="check-mark" id="check3" style="display:none;">✔</span>
+      </div>
+    </div>
+
+    <!-- Setting (表示・非表示) -->
+    <div class="menu-section">
+      <div class="section-label">表示設定 (Setting)</div>
+      <div class="setting-item">
+        <span>🔊 発音ヒント表示</span>
+        <input type="checkbox" id="setPronounce" checked onchange="updateSettings()">
+      </div>
+      <div class="setting-item">
+        <span>⌨️ 英語配列キー表示</span>
+        <input type="checkbox" id="setKeyHint" checked onchange="updateSettings()">
+      </div>
+      <div class="setting-item">
+        <span>👁️ 「答えを見る」ボタン</span>
+        <input type="checkbox" id="setRevealBtn" checked onchange="updateSettings()">
+      </div>
+      <div class="setting-item">
+        <span>🔊 「発音を聞く」ボタン</span>
+        <input type="checkbox" id="setAudioBtn" checked onchange="updateSettings()">
+      </div>
+    </div>
+
+    <!-- CSVファイル取込 -->
+    <div class="menu-section">
+      <div class="section-label">データ管理</div>
+      <label class="btn-csv-import">
+        📁 CSVファイルの取込
+        <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCSVUpload(event)">
+      </label>
     </div>
   </div>
 
   <script>
+    // 140音データ自動生成用インデックス
     const consData = [
       { char: 'ㄱ', key: 'r', rom: 'g/k', name: 'カ行' }, { char: 'ㄴ', key: 's', rom: 'n', name: 'ナ行' },
       { char: 'ㄷ', key: 'e', rom: 'd/t', name: 'タ行' }, { char: 'ㄹ', key: 'f', rom: 'r/l', name: 'ラ行' },
@@ -217,8 +365,8 @@
       { key: 'm', rom: 'eu', hint: '平らなウ' }, { key: 'l', rom: 'i', hint: 'イ' }
     ];
 
-    const cJamoIndices = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
-    const vJamoIndices = [0, 2, 4, 6, 8, 12, 13, 18, 19, 20];
+    const cJamoIndices = [0, 2, 3, 5, 6, 7, 9, 11, 12, 14, 15, 16, 17, 18];
+    const vJamoIndices = [0, 2, 4, 6, 8, 12, 13, 14, 18, 20];
 
     const builtinMode1 = [];
     for (let c = 0; c < consData.length; c++) {
@@ -258,6 +406,7 @@
     let score = 0;
     let isRandom = false;
 
+    // UI要素
     const romajiTextEl = document.getElementById('romajiText');
     const pronounceHintEl = document.getElementById('pronounceHint');
     const keyHintEl = document.getElementById('keyHint');
@@ -268,9 +417,46 @@
     const progressEl = document.getElementById('progress');
     const maxProgressEl = document.getElementById('maxProgress');
 
+    // キーボード連動
     userInputEl.addEventListener('focus', () => document.body.classList.add('is-keyboard-open'));
     userInputEl.addEventListener('blur', () => document.body.classList.remove('is-keyboard-open'));
 
+    // ハンバーガーメニュー開閉
+    function toggleMenu() {
+      document.getElementById('menuOverlay').classList.toggle('open');
+      document.getElementById('menuContent').classList.toggle('open');
+    }
+
+    // 設定（表示/非表示）の更新＆保存
+    function updateSettings() {
+      const showPronounce = document.getElementById('setPronounce').checked;
+      const showKey = document.getElementById('setKeyHint').checked;
+      const showReveal = document.getElementById('setRevealBtn').checked;
+      const showAudio = document.getElementById('setAudioBtn').checked;
+
+      pronounceHintEl.style.display = showPronounce ? 'block' : 'none';
+      keyHintEl.style.display = showKey ? 'inline-block' : 'none';
+      document.getElementById('btnReveal').style.display = showReveal ? 'inline-block' : 'none';
+      document.getElementById('btnAudio').style.display = showAudio ? 'inline-block' : 'none';
+
+      // 保存
+      const settings = { showPronounce, showKey, showReveal, showAudio };
+      localStorage.setItem('hangul_app_settings', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem('hangul_app_settings');
+      if (saved) {
+        const s = JSON.parse(saved);
+        document.getElementById('setPronounce').checked = s.showPronounce;
+        document.getElementById('setKeyHint').checked = s.showKey;
+        document.getElementById('setRevealBtn').checked = s.showReveal;
+        document.getElementById('setAudioBtn').checked = s.showAudio;
+      }
+      updateSettings();
+    }
+
+    // 音声再生
     function playAudio() {
       const targetText = currentDataList[currentIndex].target;
       if ('speechSynthesis' in window) {
@@ -312,7 +498,7 @@
         playAudio();
         score++;
         scoreEl.textContent = score;
-        setTimeout(nextQuestion, 500);
+        setTimeout(nextQuestion, 450);
       }
     });
 
@@ -324,15 +510,23 @@
 
     function changeMode(mode) {
       currentMode = mode;
-      document.querySelectorAll('.mode-btn').forEach((btn, idx) => btn.classList.toggle('active', idx + 1 === mode));
       
+      // UI更新 (チェックマーク)
+      for (let i = 1; i <= 3; i++) {
+        const opt = document.getElementById(`modeOpt${i}`);
+        const chk = document.getElementById(`check${i}`);
+        if (i === mode) {
+          opt.classList.add('active');
+          chk.style.display = 'inline';
+        } else {
+          opt.classList.remove('active');
+          chk.style.display = 'none';
+        }
+      }
+
       if (csvStore.length > 0) {
         const filtered = csvStore.filter(item => String(item.mode).trim() === String(mode));
-        if (filtered.length > 0) {
-          currentDataList = filtered;
-        } else {
-          currentDataList = getBuiltinModeData(mode);
-        }
+        currentDataList = filtered.length > 0 ? filtered : getBuiltinModeData(mode);
       } else {
         currentDataList = getBuiltinModeData(mode);
       }
@@ -346,7 +540,6 @@
       return builtinMode1;
     }
 
-    // CSVテキストをパースして保存・適用する関数
     function parseAndApplyCSV(csvText, showAlert = true) {
       const lines = csvText.split('\n');
       const parsed = [];
@@ -370,13 +563,13 @@
       if (parsed.length > 0) {
         csvStore = parsed;
         if (showAlert) {
-          alert(`全 ${parsed.length} 件のデータを読み込み、ブラウザに自動保存しました！\n次回からはお気に入りから開くだけでOKです。`);
+          alert(`全 ${parsed.length} 件のデータを読み込み、自動保存しました！`);
+          toggleMenu(); // メニューを閉じる
         }
         changeMode(currentMode);
       }
     }
 
-    // CSVファイルのアップロード処理（初回）
     function handleCSVUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -384,26 +577,15 @@
       const reader = new FileReader();
       reader.onload = function(evt) {
         const text = evt.target.result;
-        // ブラウザのlocalStorageに保存（次回自動読み込み用）
         localStorage.setItem('hangul_custom_csv_data', text);
         parseAndApplyCSV(text, true);
       };
       reader.readAsText(file, 'UTF-8');
     }
 
-    // アプリ起動時に保存済みCSVがあれば自動復元
-    function init() {
-      const savedData = localStorage.getItem('hangul_custom_csv_data');
-      if (savedData) {
-        parseAndApplyCSV(savedData, false);
-      } else {
-        loadQuestion();
-      }
-    }
-
     function toggleOrder() {
       isRandom = !isRandom;
-      document.getElementById('orderBtn').textContent = isRandom ? '出題: ランダム' : '出題: 順番通り';
+      document.getElementById('orderBtn').textContent = isRandom ? 'ランダム' : '順序通り';
       nextQuestion();
     }
 
@@ -412,6 +594,16 @@
       score = 0;
       scoreEl.textContent = score;
       loadQuestion();
+    }
+
+    function init() {
+      loadSettings();
+      const savedData = localStorage.getItem('hangul_custom_csv_data');
+      if (savedData) {
+        parseAndApplyCSV(savedData, false);
+      } else {
+        loadQuestion();
+      }
     }
 
     init();
