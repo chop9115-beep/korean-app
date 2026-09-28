@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+  <title>ハングルタイピング練習アプリ</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f0f4f8;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100dvh;
+      margin: 0;
+      padding: 8px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .card {
+      background: #ffffff;
+      padding: 12px 10px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+    h1 { font-size: 1rem; color: #2f5496; margin: 0 0 6px 0; }
+    
+    .mode-selector {
+      display: flex;
+      justify-content: space-between;
+      gap: 3px;
+      margin-bottom: 6px;
+    }
+    .mode-btn {
+      flex: 1;
+      background: #e2efda;
+      border: 1px solid #a8d08d;
+      color: #375623;
+      padding: 5px 2px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+    .mode-btn.active { background: #2f5496; color: white; border-color: #2f5496; }
+
+    .csv-upload-box { margin-bottom: 6px; }
+    .btn-csv {
+      background: #fff;
+      border: 1px dashed #2f5496;
+      color: #2f5496;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    .controls { margin-bottom: 6px; }
+    .btn-sub {
+      background: #f2f2f2;
+      border: 1px solid #ccc;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.7rem;
+    }
+
+    .question-box {
+      background: #eef2f7;
+      border-radius: 10px;
+      padding: 8px 6px;
+      margin-bottom: 6px;
+    }
+    
+    .romaji-large {
+      font-size: 2.1rem;
+      font-weight: bold;
+      color: #1e3a70;
+      margin: 2px 0;
+      line-height: 1.1;
+    }
+    
+    .pronounce-hint {
+      font-size: 0.78rem;
+      color: #555;
+      margin-bottom: 4px;
+      min-height: 1.2em;
+    }
+
+    .key-hint {
+      display: inline-block;
+      background: #ffffff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid #2f5496;
+      font-size: 0.7rem;
+      color: #2f5496;
+      font-weight: bold;
+    }
+
+    .action-btns {
+      margin-top: 6px;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-action {
+      background: #ffc000;
+      color: #000;
+      border: none;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.7rem;
+    }
+    .btn-audio { background: #4472c4; color: #fff; }
+
+    .revealed-answer {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #c55a11;
+      margin-top: 2px;
+      display: none;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      font-size: 1.4rem;
+      text-align: center;
+      padding: 4px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      margin: 0 auto 4px auto;
+    }
+    input[type="text"]:focus { border-color: #2f5496; }
+
+    .feedback { font-weight: bold; font-size: 0.9rem; min-height: 18px; margin-bottom: 2px; }
+    .correct { color: #2e7d32; }
+    .score-board { font-size: 0.72rem; color: #666; }
+
+    /* キーボード表示時の超コンパクトスタイル */
+    body.is-keyboard-open { align-items: flex-start; padding-top: 2px; }
+    body.is-keyboard-open h1 { display: none; }
+    body.is-keyboard-open .card { padding: 6px 8px; }
+    body.is-keyboard-open .romaji-large { font-size: 1.5rem; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🇰🇷 ハングルタイピング</h1>
+    
+    <div class="mode-selector">
+      <button class="mode-btn active" onclick="changeMode(1)">1. 140音組合せ</button>
+      <button class="mode-btn" onclick="changeMode(2)">2. 基本単語</button>
+      <button class="mode-btn" onclick="changeMode(3)">3. 会話フレーズ</button>
+    </div>
+
+    <!-- 全モード一括CSVファイルの読込機能 -->
+    <div class="csv-upload-box">
+      <label class="btn-csv">
+        📁 全データ一括CSVの読み込み
+        <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCSVUpload(event)">
+      </label>
+    </div>
+
+    <div class="controls">
+      <button class="btn-sub" onclick="toggleOrder()" id="orderBtn">出題: 順番通り</button>
+      <button class="btn-sub" onclick="resetQuiz()">最初から</button>
+    </div>
+    
+    <div class="question-box">
+      <div style="font-size: 0.68rem; color: #777;">【問題】ローマ字タイピング</div>
+      <div class="romaji-large" id="romajiText">ga</div>
+      <div class="pronounce-hint" id="pronounceHint">発音: カ (a)</div>
+      <div class="key-hint" id="keyHint">キー: r + k</div>
+
+      <div class="action-btns">
+        <button class="btn-action" onclick="revealAnswer()">👁️ 答えを見る</button>
+        <button class="btn-action btn-audio" onclick="playAudio()">🔊 発音を聞く</button>
+      </div>
+      <div class="revealed-answer" id="revealedAnswer">가</div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <input type="text" id="userInput" placeholder="ハングル入力" autocomplete="off">
+    
+    <div class="score-board">
+      正解数: <span id="score">0</span> | 進捗: <span id="progress">1</span> / <span id="maxProgress">140</span>
+    </div>
+  </div>
+
+  <script>
+    const consData = [
+      { char: 'ㄱ', key: 'r', rom: 'g/k', name: 'カ行' }, { char: 'ㄴ', key: 's', rom: 'n', name: 'ナ行' },
+      { char: 'ㄷ', key: 'e', rom: 'd/t', name: 'タ行' }, { char: 'ㄹ', key: 'f', rom: 'r/l', name: 'ラ行' },
+      { char: 'ㅁ', key: 'a', rom: 'm', name: 'マ行' }, { char: 'ㅂ', key: 'q', rom: 'b/p', name: 'パ行' },
+      { char: 'ㅅ', key: 't', rom: 's', name: 'サ行' }, { char: 'ㅇ', key: 'd', rom: '-', name: 'ア行(無音)' },
+      { char: 'ㅈ', key: 'w', rom: 'j/ch', name: 'チャ行' }, { char: 'ㅊ', key: 'c', rom: "ch'", name: '激音チャ' },
+      { char: 'ㅋ', key: 'z', rom: "k'", name: '激音カ' }, { char: 'ㅌ', key: 'x', rom: "t'", name: '激音タ' },
+      { char: 'ㅍ', key: 'v', rom: "p'", name: '激音パ' }, { char: 'ㅎ', key: 'g', rom: 'h', name: 'ハ行' }
+    ];
+    const vowelData = [
+      { key: 'k', rom: 'a', hint: 'ア' }, { key: 'i', rom: 'ya', hint: 'ヤ' },
+      { key: 'j', rom: 'eo', hint: '広いオ' }, { key: 'u', rom: 'yeo', hint: '広いヨ' },
+      { key: 'h', rom: 'o', hint: '丸めるオ' }, { key: 'y', rom: 'yo', hint: '丸めるヨ' },
+      { key: 'n', rom: 'u', hint: '丸めるウ' }, { key: 'b', rom: 'yu', hint: '丸めるユ' },
+      { key: 'm', rom: 'eu', hint: '平らなウ' }, { key: 'l', rom: 'i', hint: 'イ' }
+    ];
+
+    const cJamoIndices = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+    const vJamoIndices = [0, 2, 4, 6, 8, 12, 13, 18, 19, 20];
+
+    const builtinMode1 = [];
+    for (let c = 0; c < consData.length; c++) {
+      for (let v = 0; v < vowelData.length; v++) {
+        const charCode = 0xAC00 + (cJamoIndices[c] * 21 + vJamoIndices[v]) * 28;
+        const hangul = String.fromCharCode(charCode);
+        const cObj = consData[c];
+        const vObj = vowelData[v];
+        builtinMode1.push({
+          mode: '1',
+          target: hangul,
+          romaji: `${cObj.rom === '-' ? '' : cObj.rom}${vObj.rom}`,
+          hint: `発音: 【${cObj.name}】 ＋ 【${vObj.hint}】`,
+          key: `キー: ${cObj.key} + ${vObj.key}`
+        });
+      }
+    }
+
+    const builtinMode2 = [
+      { mode: '2', target: "우유", romaji: "u - yu", hint: "【意味】牛乳", key: "キー: n + b" },
+      { mode: '2', target: "고기", romaji: "go - gi", hint: "【意味】お肉", key: "キー: rh + rl" },
+      { mode: '2', target: "나무", romaji: "na - mu", hint: "【意味】木", key: "キー: sk + an" },
+      { mode: '2', target: "바다", romaji: "ba - da", hint: "【意味】海", key: "キー: qk + ek" },
+      { mode: '2', target: "사과", romaji: "sa - gwa", hint: "【意味】りんご", key: "キー: tk + rhk" }
+    ];
+
+    const builtinMode3 = [
+      { mode: '3', target: "안녕하세요", romaji: "an - nyeong - ha - se - yo", hint: "【意味】こんにちは", key: "キー: dks + sud + ghk + tp + dy" },
+      { mode: '3', target: "감사합니다", romaji: "gam - sa - ham - ni - da", hint: "【意味】ありがとうございます", key: "キー: rka + tk + gka + sl + ek" },
+      { mode: '3', target: "죄송합니다", romaji: "joe - song - ham - ni - da", hint: "【意味】ごめんなさい", key: "キー: thl + thd + gka + sl + ek" }
+    ];
+
+    let csvStore = [];
+    let currentMode = 1;
+    let currentDataList = builtinMode1;
+    let currentIndex = 0;
+    let score = 0;
+    let isRandom = false;
+
+    const romajiTextEl = document.getElementById('romajiText');
+    const pronounceHintEl = document.getElementById('pronounceHint');
+    const keyHintEl = document.getElementById('keyHint');
+    const revealedAnswerEl = document.getElementById('revealedAnswer');
+    const userInputEl = document.getElementById('userInput');
+    const feedbackEl = document.getElementById('feedback');
+    const scoreEl = document.getElementById('score');
+    const progressEl = document.getElementById('progress');
+    const maxProgressEl = document.getElementById('maxProgress');
+
+    userInputEl.addEventListener('focus', () => document.body.classList.add('is-keyboard-open'));
+    userInputEl.addEventListener('blur', () => document.body.classList.remove('is-keyboard-open'));
+
+    function playAudio() {
+      const targetText = currentDataList[currentIndex].target;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const uttr = new SpeechSynthesisUtterance(targetText);
+        uttr.lang = 'ko-KR';
+        uttr.rate = 0.85;
+        window.speechSynthesis.speak(uttr);
+      }
+    }
+
+    function loadQuestion() {
+      if (!currentDataList || currentDataList.length === 0) return;
+      const item = currentDataList[currentIndex];
+      romajiTextEl.textContent = item.romaji;
+      pronounceHintEl.textContent = item.hint;
+      keyHintEl.textContent = item.key;
+      revealedAnswerEl.textContent = item.target;
+      revealedAnswerEl.style.display = 'none';
+
+      userInputEl.value = '';
+      feedbackEl.textContent = '';
+      progressEl.textContent = currentIndex + 1;
+      maxProgressEl.textContent = currentDataList.length;
+    }
+
+    function revealAnswer() {
+      revealedAnswerEl.style.display = 'block';
+      playAudio();
+    }
+
+    userInputEl.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      const currentItem = currentDataList[currentIndex];
+      
+      if (val === currentItem.target) {
+        feedbackEl.textContent = '⭕ 正解！';
+        feedbackEl.className = 'feedback correct';
+        playAudio();
+        score++;
+        scoreEl.textContent = score;
+        setTimeout(nextQuestion, 500);
+      }
+    });
+
+    function nextQuestion() {
+      if (isRandom) currentIndex = Math.floor(Math.random() * currentDataList.length);
+      else currentIndex = (currentIndex + 1) % currentDataList.length;
+      loadQuestion();
+    }
+
+    function changeMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-btn').forEach((btn, idx) => btn.classList.toggle('active', idx + 1 === mode));
+      
+      if (csvStore.length > 0) {
+        const filtered = csvStore.filter(item => String(item.mode).trim() === String(mode));
+        if (filtered.length > 0) {
+          currentDataList = filtered;
+        } else {
+          currentDataList = getBuiltinModeData(mode);
+        }
+      } else {
+        currentDataList = getBuiltinModeData(mode);
+      }
+      resetQuiz();
+    }
+
+    function getBuiltinModeData(mode) {
+      if (mode === 1) return builtinMode1;
+      if (mode === 2) return builtinMode2;
+      if (mode === 3) return builtinMode3;
+      return builtinMode1;
+    }
+
+    // CSVテキストをパースして保存・適用する関数
+    function parseAndApplyCSV(csvText, showAlert = true) {
+      const lines = csvText.split('\n');
+      const parsed = [];
+      
+      lines.forEach((line, idx) => {
+        const parts = line.split(',');
+        if (parts.length >= 3) {
+          const m = parts[0].trim();
+          if (idx === 0 && (m.includes('モード') || m.includes('Mode'))) return;
+          
+          parsed.push({
+            mode: m,
+            target: parts[1].trim(),
+            romaji: parts[2].trim(),
+            hint: parts[3] ? parts[3].trim() : '',
+            key: parts[4] ? parts[4].trim() : ''
+          });
+        }
+      });
+
+      if (parsed.length > 0) {
+        csvStore = parsed;
+        if (showAlert) {
+          alert(`全 ${parsed.length} 件のデータを読み込み、ブラウザに自動保存しました！\n次回からはお気に入りから開くだけでOKです。`);
+        }
+        changeMode(currentMode);
+      }
+    }
+
+    // CSVファイルのアップロード処理（初回）
+    function handleCSVUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const text = evt.target.result;
+        // ブラウザのlocalStorageに保存（次回自動読み込み用）
+        localStorage.setItem('hangul_custom_csv_data', text);
+        parseAndApplyCSV(text, true);
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    // アプリ起動時に保存済みCSVがあれば自動復元
+    function init() {
+      const savedData = localStorage.getItem('hangul_custom_csv_data');
+      if (savedData) {
+        parseAndApplyCSV(savedData, false);
+      } else {
+        loadQuestion();
+      }
+    }
+
+    function toggleOrder() {
+      isRandom = !isRandom;
+      document.getElementById('orderBtn').textContent = isRandom ? '出題: ランダム' : '出題: 順番通り';
+      nextQuestion();
+    }
+
+    function resetQuiz() {
+      currentIndex = 0;
+      score = 0;
+      scoreEl.textContent = score;
+      loadQuestion();
+    }
+
+    init();
+  </script>
+</body>
+</html>
